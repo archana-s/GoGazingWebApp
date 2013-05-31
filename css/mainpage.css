@@ -1,6 +1,6 @@
 body {
   background-color: #1f211f;
-  color: white; }
+  color: #eae8e6; }
 
 .main_body {
   display: -webkit-box;
@@ -29,13 +29,12 @@ body {
   margin-left: 5px;
   padding-left: 10px;
   padding-right: 10px;
-  border: 1px solid #1d1e1d;
+  height: 30px;
+  border: 0;
   border-radius: 10px;
   background-color: #292c29;
   height: 50px;
-  -moz-box-shadow: 0 0 3px #131413;
-  -webkit-box-shadow: 0 0 3px #131413;
-  box-shadow: 0 0 3px #131413; }
+  text-shadow: 1px 1px 1px #131413; }
 
 .contents {
   width: 900px;
@@ -84,10 +83,10 @@ body {
   font-weight: 400; }
 
 .main-content {
-  color: white; }
+  color: #eae8e6; }
 
 h3 {
-  color: #cdac89; }
+  color: #4fb8df; }
 
 .footer {
   border-top: 1px solid #393d39;
@@ -114,8 +113,9 @@ h3 {
   -webkit-align-items: center;
   align-items: center;
   height: 40px;
-  font-size: 20px;
-  color: #406471; }
+  font-size: 26px;
+  font-weight: 600;
+  color: white; }
 
 .gazing_conditions {
   display: -webkit-box;
@@ -147,12 +147,12 @@ h3 {
 .title_first {
   font-size: 18px;
   font-weight: 500;
-  color: #497281; }
+  color: #5c5c5b; }
 
 .title_second {
   font-size: 18px;
   font-weight: 500;
-  color: #cdac89; }
+  color: #7b7b79; }
 
 .title_city {
   color: #d5d32e;

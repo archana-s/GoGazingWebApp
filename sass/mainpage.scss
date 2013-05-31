@@ -1,11 +1,13 @@
 $white: #FFFFFF;
-$brown: #CDAC89;
+$brown: #4fb8df;
 $backgroundColor: #1f211f;
 $lightgrey: #c6c6c6;
 $mainBorderColor: #393d39;
 $logoBlue: #497281;
 $verdictGreen: #628b2c;
 $cityYellow: #d5d32e;
+$logoGrey: #5c5c5b;
+$mainTextColor: #eae8e6;
 
 
 @mixin flexbox {
@@ -42,7 +44,7 @@ $cityYellow: #d5d32e;
 
 body {
     background-color: $backgroundColor; 
-    color: $white;
+    color: $mainTextColor;
 }
 
 .main_body {
@@ -58,13 +60,13 @@ body {
     margin-left: 5px;
     padding-left: 10px;
     padding-right: 10px;
-    border: 1px solid darken($backgroundColor, 1%);
+    height: 30px;
+    border: 0;
     border-radius: 10px;
     background-color: lighten($backgroundColor, 4%);
     height: 50px;
-    -moz-box-shadow:     0 0 3px darken($backgroundColor, 5%);
-    -webkit-box-shadow:  0 0 3px darken($backgroundColor, 5%);
-    box-shadow:          0 0 3px darken($backgroundColor, 5%);
+   
+    text-shadow: 1px 1px 1px darken($backgroundColor, 5%);
 }
 
 .contents {
@@ -92,7 +94,7 @@ body {
 }
 
 .main-content {
-   color: $white;    
+   color: $mainTextColor;    
 }
 
 h3 {
@@ -110,8 +112,9 @@ h3 {
     @include flexbox;
     @include flexbox_vert_specs(center); 
     height: 40px; 
-    font-size: 20px;
-    color: darken($logoBlue, 5%);
+    font-size: 26px;
+    font-weight: 600;
+    color: $white;
 }
 
 .gazing_conditions {
@@ -141,12 +144,12 @@ h3 {
 
 .title_first {
     @include title;
-    color: $logoBlue;
+    color: $logoGrey;
 }
 
 .title_second {
     @include title;
-    color: $brown;
+    color: lighten($logoGrey, 12%);
 }
 
 .title_city {
