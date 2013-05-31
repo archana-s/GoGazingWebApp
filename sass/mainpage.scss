@@ -1,0 +1,160 @@
+$white: #FFFFFF;
+$brown: #CDAC89;
+$backgroundColor: #1f211f;
+$lightgrey: #c6c6c6;
+$mainBorderColor: #393d39;
+$logoBlue: #497281;
+$verdictGreen: #628b2c;
+$cityYellow: #d5d32e;
+
+
+@mixin flexbox {
+    display: -webkit-box;   /* OLD: Safari,  iOS, Android browser, older WebKit browsers.  */
+    display: -moz-box;      /* OLD: Firefox (buggy) */ 
+    display: -ms-flexbox;   /* MID: IE 10 */
+    display: -webkit-flex;  /* NEW, Chrome 21+ */
+    display: flex;          /* NEW: Opera 12.1, Firefox 22+ */
+    margin: 0;
+    
+}
+
+@mixin flexbox_horz_specs($value) {
+    -webkit-box-pack: $value; -moz-box-pack: $value; 
+    -ms-flex-pack: $value; 
+    -webkit-justify-content: $value;
+    justify-content: $value;
+}
+
+@mixin flexbox_vert_specs($value) {
+    -webkit-box-align: $value; -moz-box-align: $value; /* OLD… */
+    -ms-flex-align: $value; 
+    -webkit-align-items: $value;
+    align-items: $value;
+}
+
+@mixin column_flexbox {
+    -webkit-flex-direction: column;
+}
+
+@mixin row_flexbox {
+    -webkit-flex-direction: row;
+}
+
+body {
+    background-color: $backgroundColor; 
+    color: $white;
+}
+
+.main_body {
+     @include flexbox;
+     @include flexbox_vert_specs(center);
+     @include column_flexbox; 
+     height: 100%;
+}
+
+.logo {
+    float: left;
+    margin-top: -15px;
+    margin-left: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: 1px solid darken($backgroundColor, 1%);
+    border-radius: 10px;
+    background-color: lighten($backgroundColor, 4%);
+    height: 50px;
+    -moz-box-shadow:     0 0 3px darken($backgroundColor, 5%);
+    -webkit-box-shadow:  0 0 3px darken($backgroundColor, 5%);
+    box-shadow:          0 0 3px darken($backgroundColor, 5%);
+}
+
+.contents {
+    width: 900px;
+    @include flexbox;
+    @include flexbox_horz_specs(space-around);
+    @include column_flexbox;
+    height: 100%;
+}
+
+@mixin main_border_draw ($where) {
+    border-#{$where}: 1px solid $mainBorderColor;
+}
+
+.header {
+    @include flexbox;  
+    @include flexbox_vert_specs(center);
+    height: 40px;
+    @include main_border_draw(bottom);
+}
+
+.header h2 {
+    font-size: 1.5em;
+    font-weight: 400;
+}
+
+.main-content {
+   color: $white;    
+}
+
+h3 {
+    color: $brown;
+}
+
+.footer {
+    border-top: 1px solid $mainBorderColor;
+    margin-bottom: 10px;
+    font-size: 0.75em;
+    color: $lightgrey;
+}
+
+.gaze_verdict {
+    @include flexbox;
+    @include flexbox_vert_specs(center); 
+    height: 40px; 
+    font-size: 20px;
+    color: darken($logoBlue, 5%);
+}
+
+.gazing_conditions {
+    @include flexbox;
+    @include flexbox_horz_specs(space-between);
+    @include row_flexbox;
+    border-bottom: 1px solid $mainBorderColor;
+}
+
+@mixin atomic_box {
+   height: 200px; 
+}
+
+.gaze_section {
+    @include atomic_box;
+    width: 415px;
+}
+
+.dark_spots {
+    @include atomic_box;
+}
+
+@mixin title {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.title_first {
+    @include title;
+    color: $logoBlue;
+}
+
+.title_second {
+    @include title;
+    color: $brown;
+}
+
+.title_city {
+    color: $cityYellow;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.title_date {
+    
+}

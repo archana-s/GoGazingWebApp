@@ -1,0 +1,19 @@
+$buttonColor: #132C34;
+
+.change_loc_button {
+    background-color: $buttonColor;
+    cursor: pointer;
+    width: 130px;
+    text-align:center;   
+}
+
+.change_location {
+    display: none;
+}
+
+.go_button {
+    background-color: $buttonColor;
+    cursor: pointer;
+    width: 50px;
+    text-align: center;
+}
