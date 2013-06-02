@@ -4,8 +4,14 @@ HomePage = Backbone.View.extend({
     
     el: '.main-content',
     loader_img: '<img src="images/loader.gif"/>',
+    current_chosen_city: 'Mountain View',
+    current_moonphase: 'New Moon',
+    allowed_weather_failures: 3,
+    num_weather_failures: 0,
     
     initialize: function() {
+        _.bindAll (
+            this, "render", "extractWeatherInfo");
         this.render();
         this.cloudcover = "";
         this.visibility = "";
@@ -17,27 +23,51 @@ HomePage = Backbone.View.extend({
     },
     
     render: function(){
-        var moonphase = this.getMoonPhaseForToday();
-        var upcoming_dark_nights = this.upcomingDarkNights(45);
-        var gaze_condition = "Moon is too bright to gaze";
-        if (moonphase === 'New Moon') {
-            gaze_condition = "New moon. Great night to gaze";
+        var that = this;
+        this.current_chosen_city = geoplugin_city();
+        this.current_moonphase = this.getMoonPhaseForToday();
+        
+        if(this.current_moonphase !== 'New Moon') {
+            $(".gaze_verdict").children().remove();
+            $(".gaze_verdict").append("Bright Moon. Telescope recommended");
         }
+        
+        var upcoming_dark_nights = this.upcomingDarkNights(45);
         $.get('templates/moonphase.html', function(templates) {  
             // Fetch the <script /> block from the loaded external 
             // template file which contains our greetings template.
             var template = $(templates).html();
             $('.moon_phase_section').children().remove();
-            $('.moon_phase_section').append(Mustache.render(templates, {"gaze_condition": gaze_condition, "moon_phase": moonphase, "dark_nights_this_month":upcoming_dark_nights}));
+            $('.moon_phase_section').append(Mustache.render(templates, {"moon_phase": that.current_moonphase, "dark_nights_this_month":upcoming_dark_nights}));
         });
         
         $('.title_city').children().remove();
-        $('.title_city').append(geoplugin_city());
+        $('.title_city').append(this.current_chosen_city);
         // Get weather conditions here 
         this.getWeatherConditionsWithLatLong(geoplugin_latitude(), geoplugin_longitude());
         this.readDarkSpots();
         this.putLoader();
         return this;
+    },
+    
+    updateGazeCondition: function(cloud_cover) {
+        var gaze_verdict = "Bright moon. Telescope recommended";
+        console.log ("Updating gaze condition: " + cloud_cover);
+        cloud_cover = parseInt(cloud_cover);
+        
+        if (this.current_moonphase === "New Moon") {
+            if (cloud_cover > 15 && cloud_cover < 30) {
+                gaze_verdict = "Great dark night but a little cloudy.";
+            }
+            else if (cloud_cover > 30 && cloud_cover < 50) {
+                gaze_verdict = "A little too cloudy for good gazing";
+            }
+            else {
+                gaze_verdict = "Very cloudy. Not a good day to gaze";
+            }
+        }
+        $(".gaze_verdict").children().remove();
+        $(".gaze_verdict").html(gaze_verdict);
     },
     
     putLoader: function() {
@@ -152,19 +182,36 @@ HomePage = Backbone.View.extend({
     
     getWeatherConditionsWithLatLong: function(lat, long) {
         var geo_specs = lat + "+" + long;
-       //http://api.worldweatheronline.com/free/v1/weather.ashx?q=37.38+-122.08&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
+        this.callWeatherAPI(geo_specs); 
+    },
+    
+    getWeatherConditionsWithZip: function(zipcode) {
+        this.getCityNameFromZipcode(zipcode);
+        var geo_specs = zipcode;
+        this.callWeatherAPI(geo_specs);
+    },
+    
+    callWeatherAPI: function (geo_specs) {
+        //http://api.worldweatheronline.com/free/v1/weather.ashx?q=15213&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
         var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?";
-        var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=tomorrow";
+        var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=today";
         var key = "&key=nbqknshhbpgug2gc6jrvdv23";
         
-        console.log (url + queryString + key);
-        $.getJSON (url + queryString + key + "&callback=?").success (this.extractWeatherInfo);
+        $.getJSON (url + queryString + key + "&callback=?").success(this.extractWeatherInfo).fail(this.weatherFetchFailed);
+    },
+    
+    weatherFetchFailed: function (data) {
+        console.log ("Failure reported");
+        this.num_weather_failures ++;
+        console.log (data);
+        
     },
     
     extractWeatherInfo: function (data) {
         var self = this;
         var visibility  = data.data.current_condition[0].visibility;
         var cloud_cover = data.data.current_condition[0].cloudcover;
+        this.updateGazeCondition(cloud_cover);
         console.log (visibility + " " + cloud_cover);
         
         $.get('templates/location_info.html', function(templates) {  
@@ -172,7 +219,7 @@ HomePage = Backbone.View.extend({
             // template file which contains our greetings template.
             var template = $(templates).html();
             $('.location_weather_section').children().remove();
-            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": cloud_cover, "visibility": visibility, "city":geoplugin_city()}));
+            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": cloud_cover, "visibility": visibility, "city": self.current_chosen_city}));
         });
     },
     
@@ -181,7 +228,9 @@ HomePage = Backbone.View.extend({
     },
     
     changeLocationGo: function(event) {
-        var self = this;
+        var self = this;    
+        this.clearOutGazingCondition();
+        
         var inputLocation = $("#location_input").val();
         $('.location_weather_data').remove();
         // only digits - asssume its a zipcode 
@@ -189,6 +238,8 @@ HomePage = Backbone.View.extend({
             this.getWeatherConditionsWithZip(inputLocation);
         }
         else {
+            self.current_chosen_city = inputLocation;
+            this.updateCityEverywhere();
             var url = "http://maps.googleapis.com/maps/api/geocode/json?address="+ inputLocation +"&sensor=false";
             $.getJSON(url).success (function(data){
                 var lat = data.results[0].geometry.location.lat;
@@ -197,21 +248,18 @@ HomePage = Backbone.View.extend({
             });
         }  
     },
-   
-    getWeatherConditionsWithZip: function(zipcode) {
-        this.getCityNameFromZipcode(zipcode);
-       //http://api.worldweatheronline.com/free/v1/weather.ashx?q=15213&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
-        var geo_specs = zipcode;
-        var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?";
-        var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=today";
-        var key = "&key=nbqknshhbpgug2gc6jrvdv23";
-        
-        console.log (url + queryString + key);
-        $.getJSON (url + queryString + key + "&callback=?").success (this.extractWeatherInfo);
+    
+    clearOutGazingCondition: function() {
+        if(this.current_moonphase === 'New Moon') {
+            $('.gaze_verdict').children().remove();
+            $('.gaze_verdict').html(this.loader_img);
+        }
     },
+   
+    
     
     readDarkSpots: function(lat, long) {
-        console.log ("Reading the dark spots json file");
+        //console.log ("Reading the dark spots json file");
         $.getJSON ('data/darkspots.json', this.getDarkSpotsForTheRegion);
     },
     
@@ -240,7 +288,7 @@ HomePage = Backbone.View.extend({
     },
     
     getCityNameFromZipcode: function(zipCode) {
-        debugger;
+        var that = this;
         var country = 'United States';               
         var geocoder = new google.maps.Geocoder();
 
@@ -264,19 +312,23 @@ HomePage = Backbone.View.extend({
                 // find city data
                 if (cityQueryable.length) {
                     cityName = cityQueryable[0]['long_name'];
-                    console.log (cityName);
-                    $(".city").empty();
-                    $(".city").html (cityName);
+                    //console.log (cityName);
+                    that.current_chosen_city = cityName;
+                    that.updateCityEverywhere();
                 }
             }
         });
-    }
+    },
     
+    updateCityEverywhere: function () {
+        $(".title_city").empty();
+        $(".title_city").html(this.current_chosen_city).fadeIn("slow");
+    }
 });
 
 $(document).ready (function(){
     homepage = new HomePage();
-    console.log (geoplugin_latitude() + " " + geoplugin_longitude());
+    //console.log (geoplugin_latitude() + " " + geoplugin_longitude());
 });
 
 
