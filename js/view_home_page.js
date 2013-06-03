@@ -8,10 +8,12 @@ HomePage = Backbone.View.extend({
     current_moonphase: 'New Moon',
     allowed_weather_failures: 3,
     num_weather_failures: 0,
+    current_latitude: 0,
+    current_longitude: 0,
     
     initialize: function() {
         _.bindAll (
-            this, "render", "extractWeatherInfo");
+            this, "render", "extractWeatherInfo", "getDarkSpotsForTheRegion");
         this.render();
         this.cloudcover = "";
         this.visibility = "";
@@ -24,8 +26,7 @@ HomePage = Backbone.View.extend({
     
     render: function(){
         var that = this;
-        this.current_chosen_city = geoplugin_city();
-        this.current_moonphase = this.getMoonPhaseForToday();
+        this.initVars();
         
         if(this.current_moonphase !== 'New Moon') {
             $(".gaze_verdict").children().remove();
@@ -48,6 +49,13 @@ HomePage = Backbone.View.extend({
         this.readDarkSpots();
         this.putLoader();
         return this;
+    },
+    
+    initVars: function () {
+        this.current_chosen_city = geoplugin_city();
+        this.current_moonphase = this.getMoonPhaseForToday();
+        this.current_latitude = geoplugin_latitude();
+        this.current_longitude = geoplugin_longitude();
     },
     
     updateGazeCondition: function(cloud_cover) {
@@ -176,35 +184,34 @@ HomePage = Backbone.View.extend({
 	   }
     },
     
-    getCityName: function(lat, long) {
-        
-    },
-    
     getWeatherConditionsWithLatLong: function(lat, long) {
         var geo_specs = lat + "+" + long;
         this.callWeatherAPI(geo_specs); 
     },
     
-    getWeatherConditionsWithZip: function(zipcode) {
-        this.getCityNameFromZipcode(zipcode);
-        var geo_specs = zipcode;
-        this.callWeatherAPI(geo_specs);
-    },
-    
     callWeatherAPI: function (geo_specs) {
         //http://api.worldweatheronline.com/free/v1/weather.ashx?q=15213&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
+        console.log ("Going to call Weather API");
         var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?";
         var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=today";
         var key = "&key=nbqknshhbpgug2gc6jrvdv23";
         
-        $.getJSON (url + queryString + key + "&callback=?").success(this.extractWeatherInfo).fail(this.weatherFetchFailed);
+        $.getJSON (url + queryString + key + "&callback=?").success(this.extractWeatherInfo).error(this.weatherFetchFailed);
     },
     
     weatherFetchFailed: function (data) {
-        console.log ("Failure reported");
         this.num_weather_failures ++;
-        console.log (data);
-        
+        if (this.num_weather_failures > this.allowed_weather_failures) {
+            this.num_weather_failures = 0;
+            $('.location_weather_section').children().remove();
+            $('.location_weather_section').append ("Sorry. I am unable to fetch weather. I am notified of the problem and working on it probably right now to get it fixed for you.");
+        }
+        else {
+            if(this.num_weather_failures === 1) {
+                $('.location_weather_section').append("Oops! I am having troubles fetching weather. Trying again!");
+            }
+            this.getWeatherConditionsWithLatLong(this.current_latitude, this.current_longitude);
+        }
     },
     
     extractWeatherInfo: function (data) {
@@ -229,24 +236,34 @@ HomePage = Backbone.View.extend({
     
     changeLocationGo: function(event) {
         var self = this;    
+        
+        /** 1. Clear out gaze verdict
+            */
         this.clearOutGazingCondition();
         
+        /** 2. Update weather conditions
+            */
         var inputLocation = $("#location_input").val();
         $('.location_weather_data').remove();
+            
         // only digits - asssume its a zipcode 
         if (inputLocation.match(/^\d+$/)) {
-            this.getWeatherConditionsWithZip(inputLocation);
+            this.getCityNameFromZipcode(inputLocation);
         }
         else {
             self.current_chosen_city = inputLocation;
-            this.updateCityEverywhere();
-            var url = "http://maps.googleapis.com/maps/api/geocode/json?address="+ inputLocation +"&sensor=false";
-            $.getJSON(url).success (function(data){
-                var lat = data.results[0].geometry.location.lat;
-                var long = data.results[0].geometry.location.lng; 
-                self.getWeatherConditionsWithLatLong(lat, long);
-            });
-        }  
+            self.updateCityEverywhere();
+        }
+        
+        var url = "http://maps.googleapis.com/maps/api/geocode/json?address="+ inputLocation +"&sensor=false";
+        $.getJSON(url).success (function(data){
+            self.current_latitude = data.results[0].geometry.location.lat;
+            self.current_longitude = data.results[0].geometry.location.lng;
+            self.getWeatherConditionsWithLatLong(self.current_latitude, self.current_longitude);
+            /** 3. Update Dark spots 
+                */
+            self.readDarkSpots (self.current_latitude, self.current_longitude);
+        });
     },
     
     clearOutGazingCondition: function() {
@@ -256,16 +273,14 @@ HomePage = Backbone.View.extend({
         }
     },
    
-    
-    
     readDarkSpots: function(lat, long) {
-        //console.log ("Reading the dark spots json file");
         $.getJSON ('data/darkspots.json', this.getDarkSpotsForTheRegion);
     },
     
     getDarkSpotsForTheRegion:function(data) {
-        var lat = geoplugin_latitude();
-        var long = geoplugin_longitude ();
+        debugger;
+        var lat = this.current_latitude;
+        var long = this.current_longitude;
         
         var spots = [];
         var index = 0;
@@ -275,8 +290,7 @@ HomePage = Backbone.View.extend({
                 spots[index++] = obj;
             }
         });
-        console.log (spots);
-            
+       
         //render content in HTML
         $.get('templates/gaze_spots.html', function(templates) {  
             // Fetch the <script /> block from the loaded external 
