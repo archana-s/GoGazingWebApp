@@ -60,11 +60,12 @@ HomePage = Backbone.View.extend({
     
     updateGazeCondition: function(cloud_cover) {
         var gaze_verdict = "Bright moon. Telescope recommended";
-        console.log ("Updating gaze condition: " + cloud_cover);
-        cloud_cover = parseInt(cloud_cover);
-        
+        cloud_cover = parseInt(cloud_cover, 10);
         if (this.current_moonphase === "New Moon") {
-            if (cloud_cover > 15 && cloud_cover < 30) {
+            if (cloud_cover <= 15) {
+                gaze_verdict = "Great dark night to gaze.";
+            }
+            else if (cloud_cover > 15 && cloud_cover < 30) {
                 gaze_verdict = "Great dark night but a little cloudy.";
             }
             else if (cloud_cover > 30 && cloud_cover < 50) {
@@ -157,28 +158,20 @@ HomePage = Backbone.View.extend({
 	   {
 		  case 0:
 			 return 'New Moon';
-			 break;
 		  case 1:
 			 return 'Waxing Crescent Moon';
-             break;
 		  case 2:
 			 return 'Quarter Moon';
-			 break;
 		  case 3:
 			 return 'Waxing Gibbous Moon';
-			 break;
 		  case 4:
 			 return 'Full Moon';
-			 break;
 		  case 5:
 			 return 'Waning Gibbous Moon';
-			 break;
 		  case 6:
 			 return 'Last Quarter Moon';
-			 break;
 		  case 7:
 			 return 'Waning Crescent Moon';
-			 break;
 		  default:
 			 return 'Error';
 	   }
@@ -231,7 +224,7 @@ HomePage = Backbone.View.extend({
     },
     
     changeLocation: function(event) {
-        $('.change_location').css ("display", "block");
+        $('.change_location').css("display", "block");
     },
     
     changeLocationGo: function(event) {
@@ -278,7 +271,6 @@ HomePage = Backbone.View.extend({
     },
     
     getDarkSpotsForTheRegion:function(data) {
-        debugger;
         var lat = this.current_latitude;
         var long = this.current_longitude;
         
@@ -309,7 +301,7 @@ HomePage = Backbone.View.extend({
         geocoder.geocode({ 'address': zipCode + ',' + country }, function (result, status) {
             var stateName = '';
             var cityName = '';
-            var addressComponent = result[0]['address_components'];
+            var addressComponent = result[0].address_components;
 
             // find state data
             var stateQueryable = $.grep(addressComponent, function (x) {
@@ -317,7 +309,7 @@ HomePage = Backbone.View.extend({
             });
 
             if (stateQueryable.length) {
-                stateName = stateQueryable[0]['long_name'];
+                stateName = stateQueryable[0].long_name;
 
                 var cityQueryable = $.grep(addressComponent, function (x) {
                     return $.inArray('locality', x.types) != -1;
@@ -325,8 +317,7 @@ HomePage = Backbone.View.extend({
 
                 // find city data
                 if (cityQueryable.length) {
-                    cityName = cityQueryable[0]['long_name'];
-                    //console.log (cityName);
+                    cityName = cityQueryable[0].long_name;
                     that.current_chosen_city = cityName;
                     that.updateCityEverywhere();
                 }
