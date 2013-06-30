@@ -1,14 +1,16 @@
 <div class="gaze_spots">
-    <h3>Dark Spots Near You to Gaze</h3>
-    <ul>
-        {{#spots}}
-        <li>
-            {{name}}&nbsp;&nbsp;{{lat}}&nbsp;&nbsp;{{long}}
-        </li>
+    <div class="gaze_spot_title">Dark Spots Near You to Gaze</div>
+    <div class="gaze_spot_contents">
+        <ul>
+            {{#spots}}
+            <li>
+                {{name}}&nbsp;&nbsp;{{lat}}&nbsp;&nbsp;{{long}}
+            </li>
+            {{/spots}}
+        </ul>
+        
+        {{^spots}}
+        <h4>We are notified and will be updating dark spots for this region within the next 24 hours. Please check back!</h4>
         {{/spots}}
-    </ul>
-    
-    {{^spots}}
-    <h4>We are notified and will be updating dark spots for this region within the next 24 hours. Please check back!</h4>
-    {{/spots}}
+    </div>
 </div>

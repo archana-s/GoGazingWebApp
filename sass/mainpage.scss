@@ -1,13 +1,14 @@
 $white: #FFFFFF;
 $brown: #4fb8df;
-$backgroundColor: #1f211f;
+$backgroundColor: #3C3F3C;
 $lightgrey: #c6c6c6;
-$mainBorderColor: #393d39;
+$mainBorderColor: #434643;
 $logoBlue: #497281;
 $verdictGreen: #628b2c;
 $cityYellow: #d5d32e;
 $logoGrey: #5c5c5b;
-$mainTextColor: #eae8e6;
+$mainTextColor: #FFFFFF;
+$highlightColor: #EBF2CB;
 
 
 @mixin flexbox {
@@ -47,11 +48,16 @@ body {
     color: $mainTextColor;
 }
 
+.wrapper {
+    width: 100%;
+    min-height: 100%;
+}
+
 .main_body {
-     @include flexbox;
-     @include flexbox_vert_specs(center);
-     @include column_flexbox; 
      height: 100%;
+     width: 650px;
+     display: table; 
+     margin: 40px auto;
 }
 
 .logo {
@@ -65,16 +71,7 @@ body {
     border-radius: 10px;
     background-color: lighten($backgroundColor, 4%);
     height: 50px;
-   
     text-shadow: 1px 1px 1px darken($backgroundColor, 5%);
-}
-
-.contents {
-    width: 900px;
-    @include flexbox;
-    @include flexbox_horz_specs(space-around);
-    @include column_flexbox;
-    height: 100%;
 }
 
 @mixin main_border_draw ($where) {
@@ -82,15 +79,36 @@ body {
 }
 
 .header {
-    @include flexbox;  
-    @include flexbox_vert_specs(center);
-    height: 40px;
     @include main_border_draw(bottom);
+    padding-bottom: 20px;
 }
 
-.header h2 {
+@mixin title_font {
+    font-family: 'Museo Sans', "museosans-web", 'serif';
+    text-align: center;
+}
+
+@mixin text_shadow {
+   text-shadow: 2px 2px 2px #000; 
+}
+
+.main_heading {
+    @include title_font;
+    padding-bottom: 12px;
+    @include text_shadow;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.sub_heading {
+    @include title_font; 
     font-size: 1.5em;
     font-weight: 400;
+}
+
+.title_highlight {
+    color: $highlightColor;
+    font-style: italic;
 }
 
 .main-content {
@@ -109,8 +127,6 @@ h3 {
 }
 
 .gaze_verdict {
-    @include flexbox;
-    @include flexbox_vert_specs(center); 
     height: 40px; 
     font-size: 26px;
     font-weight: 600;
@@ -118,23 +134,21 @@ h3 {
 }
 
 .gazing_conditions {
-    @include flexbox;
-    @include flexbox_horz_specs(space-between);
-    @include row_flexbox;
     border-bottom: 1px solid $mainBorderColor;
+    width: 100%;
 }
 
 @mixin atomic_box {
    height: 200px; 
 }
 
-.gaze_section {
-    @include atomic_box;
-    width: 415px;
-}
-
 .dark_spots {
     @include atomic_box;
+}
+
+.geo_info {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 @mixin title {
@@ -160,4 +174,20 @@ h3 {
 
 .title_date {
     
+}
+
+div[class$="_title"] {
+    color: #F2EDB1;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+div[class$="_contents"] {
+    margin: 12px 0;
+}
+
+.footer {
+    width: 100%;
+    bottom: 0;
 }

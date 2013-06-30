@@ -1,9 +1,12 @@
 <html>
 	<head>
     	<title>GoGazing - star gazing app, night sky photographers</title>
+        
+        <link rel="stylesheet" href="css/resets.css"/> 
         <link rel="stylesheet" href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" />
         <link rel="stylesheet" href="css/mainpage.css"/>
         <link rel="stylesheet" href="css/location_info.css"/>
+        <link rel="stylesheet" href="css/darknights.css"/>
         
         <script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
         <script type="text/javascript" src="http://static.stackmob.com/js/json2-min.js"></script>
@@ -17,38 +20,38 @@
     </head>
     
     <body>
-        <div class="logo">
-            <h2><span class="title_first">go</span><span class="title_second">gazing</span></h2>      
-        </div>
-    
+      <div class="wrapper">   
+        
+        <!-- contents -->  
         <div class="main_body">
-            <div class="contents">
+                
                 <div class="header">
-                    <span class="title_city"></span><span class="title_date"></span>
+                    <div class="main_heading">GoGazing</div>
+                    <div class="sub_heading"><span class="title_highlight">Dark nights</span> and <span class="title_highlight">low-light spots</span> near you to look at the starry night sky</div>
                 </div>
     	
-                <div class="gaze_verdict"><img src="images/loader.gif"></div>
+                <div class="geo_info">
+                    <span class="title_city"></span>
+                    <span class="change_loc_button">Change Location</span>
+                </div>
             
-                <div class="main-content">
-                    <div class="gazing_conditions">
-                        <div class="gaze_section">
-                            <h3>Moon Phase Today</h3> 
-                            <div class="moon_phase_section"></div>
-                        </div>
-                        <div class="gaze_section">
-                            <h3>Weather Conditions Today</h3>
-                            <div class="location_weather_section">
-                            </div>
-                        </div>
-                    </div>
+               <!-- <div class="gaze_verdict"><img src="images/loader.gif"></div> -->
+            
+                <div class="gazing_conditions">
+                    <div class="location_weather_section"></div>
+                    <div class="moon_phase_section"></div>
                 </div>
         
                 <div class="dark_spots"></div>
-                <div class="footer"></div>
-            
-            </div>      
-        </div>    
-        
-        
+                <div class="loader"></div>
+          </div>
+          
+          <!-- place any pop ups -->
+          <div class="popup"></div>
+          
+          <!-- footer -->
+          <div class="footer"></div>     
+             
+      </div>     
     </body>
 </html>

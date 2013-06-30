@@ -2,7 +2,7 @@
     
 HomePage = Backbone.View.extend({
     
-    el: '.main-content',
+    el: 'body',
     loader_img: '<img src="images/loader.gif"/>',
     current_chosen_city: 'Mountain View',
     current_moonphase: 'New Moon',
@@ -10,6 +10,9 @@ HomePage = Backbone.View.extend({
     num_weather_failures: 0,
     current_latitude: 0,
     current_longitude: 0,
+    moon_phase_retrieved: false,
+    weather_retrieved: false,
+    city_info_retrieved: false,
     
     initialize: function() {
         _.bindAll (
@@ -21,7 +24,9 @@ HomePage = Backbone.View.extend({
     
     events: {
         "click .change_loc_button" : "changeLocation",
-        "click .go_button" : "changeLocationGo"
+        "click .go_button" : "changeLocationGo",
+        "click .cancel_button": "clearPopup",
+        "click .close_button" : "clearPopup"
     },
     
     render: function(){
@@ -34,7 +39,7 @@ HomePage = Backbone.View.extend({
         }
         
         var upcoming_dark_nights = this.upcomingDarkNights(45);
-        $.get('templates/moonphase.html', function(templates) {  
+        $.get('templates/darknights.html', function(templates) {  
             // Fetch the <script /> block from the loaded external 
             // template file which contains our greetings template.
             var template = $(templates).html();
@@ -56,6 +61,13 @@ HomePage = Backbone.View.extend({
         this.current_moonphase = this.getMoonPhaseForToday();
         this.current_latitude = geoplugin_latitude();
         this.current_longitude = geoplugin_longitude();
+    },
+    
+    haveAllInfo: function() {
+        if (this.moon_phase_retrieved && this.city_info_retrieved && this.weather_retrieved) {
+            return true;
+        }
+        return false;
     },
     
     updateGazeCondition: function(cloud_cover) {
@@ -152,8 +164,8 @@ HomePage = Backbone.View.extend({
 	   if (b >= 8 )
 	   {  
            b = 0;//0 and 8 are the same so turn 8 into 0
-	   }
-
+	   }    
+       this.updateRetrievalInfo ("moon_phase"); 
 	   switch (b)
 	   {
 		  case 0:
@@ -177,6 +189,30 @@ HomePage = Backbone.View.extend({
 	   }
     },
     
+    updateRetrievalInfo: function (retrieved_value) {
+        switch(retrieved_value) {
+                case "moon_phase":
+                    this.moon_phase_retrived = true;
+                    break;
+                case "weather":
+                    this.weather_retrieved = true;
+                    break;
+                case "city":
+                    this.city_info_retrieved = true;
+                    break;
+        };
+        
+        if (this.haveAllInfo()) {
+            this.removePageLoader();
+        }
+    },
+                
+    removePageLoader: function() {
+    },
+        
+    addPageLoader: function() {
+    },
+    
     getWeatherConditionsWithLatLong: function(lat, long) {
         var geo_specs = lat + "+" + long;
         this.callWeatherAPI(geo_specs); 
@@ -193,6 +229,7 @@ HomePage = Backbone.View.extend({
     },
     
     weatherFetchFailed: function (data) {
+        debugger;
         this.num_weather_failures ++;
         if (this.num_weather_failures > this.allowed_weather_failures) {
             this.num_weather_failures = 0;
@@ -215,16 +252,28 @@ HomePage = Backbone.View.extend({
         console.log (visibility + " " + cloud_cover);
         
         $.get('templates/location_info.html', function(templates) {  
-            // Fetch the <script /> block from the loaded external 
-            // template file which contains our greetings template.
             var template = $(templates).html();
             $('.location_weather_section').children().remove();
-            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": cloud_cover, "visibility": visibility, "city": self.current_chosen_city}));
+            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": cloud_cover, "visibility": visibility, "moon_phase": self.current_moonphase}));
         });
     },
     
     changeLocation: function(event) {
-        $('.change_location').css("display", "block");
+        $.get('templates/change_loc_popup.html', function(templates) { 
+            var template = $(templates).html();
+            $('.popup').children().remove();
+            $('.popup').append(Mustache.render(templates, {}));
+            $('.popup').css('z-index', 0);
+            $('.popup').css('width', '100%');
+            $('.popup').css('height', '100%');
+            $('.main_body').css ('opacity', 0.2);
+        });
+    },
+    
+    clearPopup: function() {
+        $('.popup').children().remove();
+        $('.main_body').animate ({opacity:1.0}, 500);
+        $('.popup').css('','');
     },
     
     changeLocationGo: function(event) {
@@ -237,6 +286,7 @@ HomePage = Backbone.View.extend({
         /** 2. Update weather conditions
             */
         var inputLocation = $("#location_input").val();
+        this.clearPopup();
         $('.location_weather_data').remove();
             
         // only digits - asssume its a zipcode 
