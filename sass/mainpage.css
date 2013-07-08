@@ -1,0 +1,79 @@
+body {
+  background-color: #1f211f;
+  color: #eae8e6; }
+
+.wrapper {
+  width: 100%;
+  min-height: 100%; }
+
+.main_body {
+  height: 100%;
+  width: 800; }
+
+.logo {
+  float: left;
+  margin-top: -15px;
+  margin-left: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  height: 30px;
+  border: 0;
+  border-radius: 10px;
+  background-color: #292c29;
+  height: 50px;
+  text-shadow: 1px 1px 1px #131413; }
+
+.header {
+  height: 40px;
+  border-bottom: 1px solid #393d39; }
+
+.header h2 {
+  font-size: 1.5em;
+  font-weight: 400; }
+
+.main-content {
+  color: #eae8e6; }
+
+h3 {
+  color: #4fb8df; }
+
+.footer {
+  border-top: 1px solid #393d39;
+  margin-bottom: 10px;
+  font-size: 0.75em;
+  color: #c6c6c6; }
+
+.gaze_verdict {
+  height: 40px;
+  font-size: 26px;
+  font-weight: 600;
+  color: white; }
+
+.gazing_conditions {
+  border-bottom: 1px solid #393d39; }
+
+.gaze_section {
+  height: 200px;
+  width: 415px; }
+
+.dark_spots {
+  height: 200px; }
+
+.title_first {
+  font-size: 18px;
+  font-weight: 500;
+  color: #5c5c5b; }
+
+.title_second {
+  font-size: 18px;
+  font-weight: 500;
+  color: #7b7b79; }
+
+.title_city {
+  color: #d5d32e;
+  font-size: 24px;
+  font-weight: 500; }
+
+.footer {
+  width: 100%;
+  bottom: 0; }

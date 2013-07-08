@@ -1,0 +1,14 @@
+.change_loc_button {
+  background-color: #132c34;
+  cursor: pointer;
+  width: 130px;
+  text-align: center; }
+
+.change_location {
+  display: none; }
+
+.go_button {
+  background-color: #132c34;
+  cursor: pointer;
+  width: 50px;
+  text-align: center; }
