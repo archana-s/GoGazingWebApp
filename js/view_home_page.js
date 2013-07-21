@@ -4,7 +4,6 @@ HomePage = Backbone.View.extend({
     
     el: 'body',
     loader_img: '<img src="images/loader.gif"/>',
-    current_chosen_city: 'Mountain View',
     allowed_weather_failures: 3,
     num_weather_failures: 0,
     moon_phase_retrieved: false,
@@ -18,6 +17,7 @@ HomePage = Backbone.View.extend({
         this.cloudcover = "";
         this.visibility = "";
         this.model.bind("fetchedDarkSpots", this.updateDarkSpotsForTheRegion);
+        this.model.bind("cityUpdated", this.updateCityEverywhere);
     },
     
     events: {
@@ -44,7 +44,7 @@ HomePage = Backbone.View.extend({
         });
         
         $('.title_city').children().remove();
-        $('.title_city').append(this.current_chosen_city);
+        $('.title_city').append(this.model.city);
         // Get weather conditions here 
         this.getWeatherConditionsWithLatLong(geoplugin_latitude(), geoplugin_longitude());
         this.putLoader();
@@ -52,7 +52,6 @@ HomePage = Backbone.View.extend({
     },
     
     initVars: function () {
-        this.current_chosen_city = geoplugin_city();
         this.model.getMoonPhaseForToday();
         this.model.readDarkSpots();
     },
@@ -197,10 +196,10 @@ HomePage = Backbone.View.extend({
             
         // only digits - asssume its a zipcode 
         if (inputLocation.match(/^\d+$/)) {
-            this.getCityNameFromZipcode(inputLocation);
+            this.model.getCityNameFromZipcode(inputLocation);
         }
         else {
-            self.current_chosen_city = inputLocation;
+            self.model.city = inputLocation;
             self.updateCityEverywhere();
         }
         
@@ -231,41 +230,9 @@ HomePage = Backbone.View.extend({
         });
     },
     
-    getCityNameFromZipcode: function(zipCode) {
-        var that = this;
-        var country = 'United States';               
-        var geocoder = new google.maps.Geocoder();
-
-        geocoder.geocode({ 'address': zipCode + ',' + country }, function (result, status) {
-            var stateName = '';
-            var cityName = '';
-            var addressComponent = result[0].address_components;
-
-            // find state data
-            var stateQueryable = $.grep(addressComponent, function (x) {
-                return $.inArray('administrative_area_level_1', x.types) != -1;
-            });
-
-            if (stateQueryable.length) {
-                stateName = stateQueryable[0].long_name;
-
-                var cityQueryable = $.grep(addressComponent, function (x) {
-                    return $.inArray('locality', x.types) != -1;
-                });
-
-                // find city data
-                if (cityQueryable.length) {
-                    cityName = cityQueryable[0].long_name;
-                    that.current_chosen_city = cityName;
-                    that.updateCityEverywhere();
-                }
-            }
-        });
-    },
-    
     updateCityEverywhere: function () {
         $(".title_city").empty();
-        $(".title_city").html(this.current_chosen_city).fadeIn("slow");
+        $(".title_city").html(this.model.city).fadeIn("slow");
     }
 });
 

@@ -10,6 +10,7 @@ var GoGazeModel = Backbone.Model.extend ({
         this.longitude = geoplugin_longitude();
         this.spots = [];
         this.darkNights = "";
+        this.city =  geoplugin_city();
     },
     
     populateModel: function() {
@@ -120,5 +121,37 @@ var GoGazeModel = Backbone.Model.extend ({
         }
         return this.darkNights;
     },
+    
+     getCityNameFromZipcode: function(zipCode) {
+        var that = this;
+        var country = 'United States';               
+        var geocoder = new google.maps.Geocoder();
+
+        geocoder.geocode({ 'address': zipCode + ',' + country }, function (result, status) {
+            var stateName = '';
+            var cityName = '';
+            var addressComponent = result[0].address_components;
+
+            // find state data
+            var stateQueryable = $.grep(addressComponent, function (x) {
+                return $.inArray('administrative_area_level_1', x.types) != -1;
+            });
+
+            if (stateQueryable.length) {
+                stateName = stateQueryable[0].long_name;
+
+                var cityQueryable = $.grep(addressComponent, function (x) {
+                    return $.inArray('locality', x.types) != -1;
+                });
+
+                // find city data
+                if (cityQueryable.length) {
+                    cityName = cityQueryable[0].long_name;
+                    that.city = cityName;
+                    that.trigger("cityUpdated");
+                }
+            }
+        });
+    }
     
 });
