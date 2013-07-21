@@ -12,12 +12,18 @@ HomePage = Backbone.View.extend({
     
     initialize: function() {
         _.bindAll (
-            this, "render", "extractWeatherInfo", "updateDarkSpotsForTheRegion");
+            this, 
+            "render", 
+            "updateDarkSpotsForTheRegion", 
+            "displayWeatherInfo", 
+            "displayWeatherError",
+            "updateCityEverywhere"
+        );
         this.render();
-        this.cloudcover = "";
-        this.visibility = "";
         this.model.bind("fetchedDarkSpots", this.updateDarkSpotsForTheRegion);
         this.model.bind("cityUpdated", this.updateCityEverywhere);
+        this.model.bind("weatherFetchSuccess", this.displayWeatherInfo);
+        this.model.bind("weatherFetchFailed", this.displayWeatherError);
     },
     
     events: {
@@ -46,7 +52,7 @@ HomePage = Backbone.View.extend({
         $('.title_city').children().remove();
         $('.title_city').append(this.model.city);
         // Get weather conditions here 
-        this.getWeatherConditionsWithLatLong(geoplugin_latitude(), geoplugin_longitude());
+        this.model.getWeatherConditionsWithLatLong();
         this.putLoader();
         return this;
     },
@@ -119,22 +125,17 @@ HomePage = Backbone.View.extend({
     addPageLoader: function() {
     },*/
     
-    getWeatherConditionsWithLatLong: function(lat, long) {
-        var geo_specs = lat + "+" + long;
-        this.callWeatherAPI(geo_specs); 
+    displayWeatherInfo: function() {
+        var self = this;
+        this.updateGazeCondition(this.model.cloud_cover);
+        $.get('templates/location_info.html', function(templates) {  
+            var template = $(templates).html();
+            $('.location_weather_section').children().remove();
+            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": self.model.cloud_cover, "visibility": self.model.visibility, "moon_phase": self.model.moonphase}));
+        });
     },
     
-    callWeatherAPI: function (geo_specs) {
-        //http://api.worldweatheronline.com/free/v1/weather.ashx?q=15213&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
-        console.log ("Going to call Weather API");
-        var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?";
-        var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=today";
-        var key = "&key=nbqknshhbpgug2gc6jrvdv23";
-        
-        $.getJSON (url + queryString + key + "&callback=?").success(this.extractWeatherInfo).error(this.weatherFetchFailed);
-    },
-    
-    weatherFetchFailed: function (data) {
+    displayWeatherError: function() {
         this.num_weather_failures ++;
         if (this.num_weather_failures > this.allowed_weather_failures) {
             this.num_weather_failures = 0;
@@ -145,22 +146,8 @@ HomePage = Backbone.View.extend({
             if(this.num_weather_failures === 1) {
                 $('.location_weather_section').append("Oops! I am having troubles fetching weather. Trying again!");
             }
-            this.getWeatherConditionsWithLatLong(this.model.latitude, this.model.longitude);
+            this.model.getWeatherConditionsWithLatLong();
         }
-    },
-    
-    extractWeatherInfo: function (data) {
-        var self = this;
-        var visibility  = data.data.current_condition[0].visibility;
-        var cloud_cover = data.data.current_condition[0].cloudcover;
-        this.updateGazeCondition(cloud_cover);
-        console.log (visibility + " " + cloud_cover);
-        
-        $.get('templates/location_info.html', function(templates) {  
-            var template = $(templates).html();
-            $('.location_weather_section').children().remove();
-            $('.location_weather_section').append(Mustache.render(templates, {"cloud_cover": cloud_cover, "visibility": visibility, "moon_phase": self.model.moonphase}));
-        });
     },
     
     changeLocation: function(event) {
@@ -207,7 +194,7 @@ HomePage = Backbone.View.extend({
         $.getJSON(url).success (function(data){
             self.model.latitude = data.results[0].geometry.location.lat;
             self.model.longitude = data.results[0].geometry.location.lng;
-            self.getWeatherConditionsWithLatLong(self.model.latitude, self.model.longitude);
+            self.model.getWeatherConditionsWithLatLong();
             /** 3. Update Dark spots 
                 */
             self.model.readDarkSpots();

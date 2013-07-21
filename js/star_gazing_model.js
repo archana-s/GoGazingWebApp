@@ -2,9 +2,15 @@ var GoGazeModel = Backbone.Model.extend ({
     
     city: 'Mountain View',
     moonphase: 'New Moon',
+    visibility: 0,
+    cloud_cover: 0,
    
     initialize: function() {
-        _.bindAll(this, "getDarkSpotsForTheRegion");
+        _.bindAll(this, 
+                  "getDarkSpotsForTheRegion", 
+                  "extractWeatherInfo", 
+                  "weatherFetchFailed"
+                 );
         this.date = new Date();
         this.latitude = geoplugin_latitude();
         this.longitude = geoplugin_longitude();
@@ -106,7 +112,7 @@ var GoGazeModel = Backbone.Model.extend ({
         this.trigger("fetchedDarkSpots");
     },
     
-     upcomingDarkNights: function(numDays) {
+    upcomingDarkNights: function(numDays) {
         this.darkNights = "";
         var index = 0;
         for( var i=0;i<numDays;i++) {
@@ -152,6 +158,31 @@ var GoGazeModel = Backbone.Model.extend ({
                 }
             }
         });
+    },
+    
+    getWeatherConditionsWithLatLong: function() {
+        var geo_specs = this.latitude + "+" + this.longitude;
+        this.callWeatherAPI(geo_specs); 
+    },
+    
+    callWeatherAPI: function (geo_specs) {
+        //http://api.worldweatheronline.com/free/v1/weather.ashx?q=15213&format=json&num_of_days=1&date=tomorrow&key=nbqknshhbpgug2gc6jrvdv23
+        var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?";
+        var queryString = "q=" + geo_specs + "&format=json&num_of_days=1&date=today";
+        var key = "&key=nbqknshhbpgug2gc6jrvdv23";
+        
+        $.getJSON (url + queryString + key + "&callback=?").success(this.extractWeatherInfo).error(this.weatherFetchFailed);
+    },
+    
+    weatherFetchFailed: function (data) {
+        this.trigger("weatherFetchFailed");
+    },
+    
+    extractWeatherInfo: function (data) {
+        this.visibility  = data.data.current_condition[0].visibility;
+        this.cloud_cover = data.data.current_condition[0].cloudcover;
+        console.log (this.visibility + " " + this.cloud_cover);
+        this.trigger("weatherFetchSuccess");
     }
     
 });
